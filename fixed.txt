@@ -1,27 +1,51 @@
-hwall  180   50   40  #000000
-vwall  180   50   30  #000000
-vwall  355   50  200  #000000
-vwall  630   50  150  #000000
-hwall  785   50   30  #000000
-hwall  785  248   30  #000000
-vwall  630  278  150  #000000
-vwall  432  278  120  #000000
-hwall  180  152   30  #000000
-hwall  180  264   30  #000000
-hwall  180  436   70  #000000
-hwall  180  604   70  #000000
-hwall  180  740   90  #000000
-hwall  180  932   40  #000000
-vwall  180  978  130  #000000
-vwall  410  978  130  #000000
-hwall  550  938   40  #000000
-hwall  550  800   40  #000000
-vwin   265   50   40  #73AD21
-vwin   343  282   40  #73AD21
-hwin   180 100 20 #73AD21
-hwin   180  192  30  #73AD21
-hwin   180  336  60  #73AD21
-hwin   180  514  40  #73AD21
-hwin   180  840 40 #73AD21
-vwin   320  982  40 #73AD21
-hwin   554 892 40 #73ad21
+vwall  180   50   20  #000000 ; southwest wall
+vwin   212   56   17  #73AD21	; master bedroom western sliding window
+vwin   230   50   40  #73AD21 ; master bedroom fixed window
+vwin   270   56   17  #73AD21	; master bedroom eastern sliding window
+vwall  293   50  200  #000000 ; southern wall
+vdoor  504   52   40  #000000   ; garage south door
+vwall  552   50  100  #000000 ; southeast wall
+hwall  662   50   20  #000000 ; south east facing garage wall
+hwall  662  248   20  #000000 ; north east facing garage wall
+vwall  550  268  100  #000000 ; eastern north facing garage wall
+vdoor  502  270   40  #000000   ; north garage door
+vwall  410  268   80  #000000 ; western north facing garage wall
+vwin   388  268   17  #73AD21	; front room eastern sliding window
+vwin   348  274   40  #73AD21 ; front room fixed window
+vwin   332  268   17  #73AD21	; front room western sliding window
+hwall  180   50   20  #000000 ; south corner western wall
+hwin   180   82   14  #73AD21
+hwin   186   98   14  #73AD21   ;
+hwall  180  118   20  #000000 ; west wall between bathroom windows
+hwin   180  150   24  #73AD21
+hwin   186  176   24  #73AD21   ;
+hwall  180  204   30  #000000 ; west wall between master bedroom and computer room
+hwin   186  244   20  #73AD21   ; computer room south sliding window
+hwin   180  266   50  #73AD21 ; computer room fixed window
+hwin   186  318   20  #73AD21   ; computer room north sliding window
+hwall  180  344   70  #000000 ; west wall between computer room and kitchen
+hwin   180  424   30  #73AD21 ; kitchen fixed window
+hwin   186  456   30  #73AD21   ; kitchen sliding window
+hwall  180  492   70  #000000 ; west wall between kitchen and washing room door
+hdoor  182  574   40  #00ff00   ; washing room door
+hwall  180  622   90  #000000 ; west wall between washing room and boys bedroom
+hwin   180  724   30  #73AD21 ; boys fixed window
+hwin   186  756   30  #73AD21   ; boys sliding window
+hwall  180  790   20  #000000 ; west window north corner
+vwall  180  810  130  #000000 ; north wall west corner
+vwin   320  816   30  #73AD21 ; girls fixed window
+vwin   350  810   30  #73AD21   ; girls sliding window
+vwall  386  810  130  #000000 ; north wall east corner
+hwall  516  790   10  #000000 ; toy room wall east facing north corner
+hwin   522  754   30  #73ad21 ; toy room fixed window
+hwin   516  724   30  #73AD21   ; toy room sliding window
+hwall  516  652   60  #000000 ; east wall girls bathroom
+vwall  444  652   60  #000000 ; girls bathroom south wall eastern corner
+vdoor  396  654   40  #00ff00   ; hall outside door
+hwall  322  268   10  #000000 ; front door south wall
+hdoor  324  290   40  #00ff00   ; front door south
+hdoor  324  338   40  #00ff00   ; front door north
+hwall  322  384   60  #000000 ; wall between front door and dining room window
+hwin   328  456   30  #73Ad21 ; south fixed window dining room
+hwin   328  492   30  #73AD21   ; dining room sliding window
+hwin   322  524   30  #73AD21 ; north fixed window dining room
