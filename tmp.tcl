@@ -142,6 +142,43 @@ proc BuildFixed {filename} {
 	}
 }
 
+proc shift {ls} {
+	upvar 1 $ls LIST
+	if {[llength $LIST]} {
+		set ret [lindex $LIST 0]
+		set LIST [lreplace $LIST 0 0]
+		return $ret
+	}
+}
+
+proc Reader { pipe } {
+	global Nodes
+	if [eof $pipe] {
+		catch {close $pipe}
+		return
+	}
+	gets $pipe LIST
+	puts $LIST
+#	set LIST [list $line]
+	set Time [shift LIST]
+	puts "Time: $Time"
+		set NodeIdKey [shift LIST]
+		set NodeIdValue [shift LIST]
+#	foreach {Key Value} $LIST 
+	while {[llength $LIST]} {
+#		set ret [lindex $LIST 0]
+#		set LIST [lreplace $LIST 0 0]
+#		puts $ret
+		set Key [shift LIST]
+		set Value [shift LIST]
+		puts "$Key = $Value"
+		dict set Nodes $NodeIdValue $Key $Value
+	}
+puts "Number of Nodes: [dict size $Nodes]"
+}
+
+
+set Nodes {}
 set Left 50
 set Top 180
 set wallColor "#000000"
@@ -160,5 +197,10 @@ BuildFixed $echo(home)/fixed.txt
 #puts $scontent
 puts "Socket Port $echo(port);  Home $echo(home)"
 set echo(main) [socket -server EchoAccept $echo(port)]
+
+set pipe [open "|sudo ./lofi_rpi -lS"]
+fconfigure $pipe -buffering line
+fileevent $pipe readable [list Reader $pipe]
+
 vwait forever
  
