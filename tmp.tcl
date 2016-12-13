@@ -1,3 +1,6 @@
+#!/usr/bin/tclsh
+#
+
 set default "index.html"
 
 
@@ -108,21 +111,17 @@ proc Echo {sock} {
   BuildBody $sock
 }
 
-proc BuildFixed {filename} {
-	global fixedBodyContent
-	global echo
+proc BuildDynamic {} {
+	global dynamicBodyContent
+	global dyNodes
+	global Nodes
 
-	set fp [open $echo(home)/fixed.txt r]
-	fconfigure $fp -buffering line
 	while {true} {
-		if [eof $fp] {
-			catch {close $fp}
-			break
+		if {[string index $line 0] == "#"} {
+			continue
 		}
-		gets $fp line
-		if {[string length $line] < 5} {
-			catch {close $fp}
-			break
+		if {[string index $line 0] == ";"} {
+			continue
 		}
 		#puts $line
 		set Tag [lindex $line 0]
@@ -138,9 +137,89 @@ proc BuildFixed {filename} {
 		set Top [lindex $line 1]
 		set Left [lindex $line 2]
 		append Length [lindex $line 3]
-		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px\"></$Tag>\r\n"
+		set Color [lindex $line 4]
+		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
 	}
 }
+
+proc BuildFixed {filename} {
+	global fixedBodyContent
+	global echo
+
+	set fp [open $filename r]
+	fconfigure $fp -buffering line
+	while {true} {
+		if [eof $fp] {
+			catch {close $fp}
+			break
+		}
+		gets $fp line
+		if {[string index $line 0] == "#"} {
+			continue
+		}
+		if {[string index $line 0] == ";"} {
+			continue
+		}
+		#puts $line
+		set Tag [lindex $line 0]
+		if {$Tag eq "vwall"} {
+			set Length "height:"
+		} elseif {$Tag eq "vwin"} {
+			set Length "height:"
+		} elseif {$Tag eq "vdoor"} {
+			set Length "height:"
+		} else {
+			set Length "width:"
+		}
+		set Top [lindex $line 1]
+		set Left [lindex $line 2]
+		append Length [lindex $line 3]
+		set Color [lindex $line 4]
+		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
+	}
+}
+
+proc parseDynamic {filename} {
+	global dyNodes
+
+	set fp [open $filename r]
+	fconfigure $fp -buffering line
+	while {true} {
+		if [eof $fp] {
+			catch {close $fp}
+			break
+		}
+		gets $fp line
+		if {[string index $line 0] == "#"} {
+			continue
+		}
+		if {[string index $line 0] == ";"} {
+			continue
+		}
+#		puts $line
+		# remove trailing comments
+		regexp {^[^;]+} $line  List
+		# separate words with one space character
+		set LList [regexp -inline -all -- {\S+} $List]
+		set Node [shift LList]
+		set Switch [shift LList]
+		set State [shift LList]
+#		lassign $List Node Switch State Type Top Left Length Color
+#		puts "Node=$Node  Switch=$Switch  State=$State  Type=$Type  Top=$Top  Left=$Left Length=$Length Color=$Color"
+		if {[lindex $LList 0] != "na"} {
+			dict set dyNodes $Node $Switch $State Enb 1
+			dict set dyNodes $Node $Switch $State Css $LList
+#			dict set dyNodes $Node $Switch $State Type $Type
+#			dict set dyNodes $Node $Switch $State Top $Top
+#			dict set dyNodes $Node $Switch $State Left $Left
+#			dict set dyNodes $Node $Switch $State Length $Length
+#			dict set dyNodes $Node $Switch $State Color $Color
+		} else {
+			dict set dyNodes $Node $Switch $State Enb 0
+		}
+	}
+}
+
 
 proc shift {ls} {
 	upvar 1 $ls LIST
@@ -161,29 +240,32 @@ proc Reader { pipe } {
 	puts $LIST
 #	set LIST [list $line]
 	set Time [shift LIST]
-	puts "Time: $Time"
-		set NodeIdKey [shift LIST]
-		set NodeIdValue [shift LIST]
+	puts -nonewline "Time: $Time  "
+	set NodeIdKey [shift LIST]
+	set NodeIdValue [shift LIST]
 #	foreach {Key Value} $LIST 
 	while {[llength $LIST]} {
 #		set ret [lindex $LIST 0]
 #		set LIST [lreplace $LIST 0 0]
 #		puts $ret
 		set Key [shift LIST]
+		regexp {^[^:]+} $Key  Key
 		set Value [shift LIST]
-		puts "$Key = $Value"
+		puts -nonewline "$Key = $Value  "
 		dict set Nodes $NodeIdValue $Key $Value
 	}
-puts "Number of Nodes: [dict size $Nodes]"
+puts "\r\nNumber of Nodes: [dict size $Nodes]"
+puts $Nodes
 }
 
 
 set Nodes {}
+set dyNodes {}
 set Left 50
 set Top 180
-set wallColor "#000000"
-set winColor "#0000ff"
-set doorColor "#AD7321"
+set wallColor black 
+set winColor green 
+set doorColor brown 
 set bcontent {}
 set scontent {}
 set content {}
@@ -192,15 +274,19 @@ set echo(counter) 0
 set echo(port) [lindex $argv 0]
 set echo(home) [lindex $argv 1]
 BuildStyle
-BuildFixed $echo(home)/fixed.txt
+set PWD [pwd]
+BuildFixed ${PWD}/fixed.txt
+parseDynamic ${PWD}/dynamic.txt
+#BuildFixed $echo(home)/fixed.txt
+#parseDynamic $echo(home)/dynamic.txt
 #puts $fixedBodyContent
 #puts $scontent
 puts "Socket Port $echo(port);  Home $echo(home)"
 set echo(main) [socket -server EchoAccept $echo(port)]
 
-set pipe [open "|sudo ./lofi_rpi -lS"]
-fconfigure $pipe -buffering line
-fileevent $pipe readable [list Reader $pipe]
+#set pipe [open "|sudo ./lofi_rpi -lS"]
+#fconfigure $pipe -buffering line
+#fileevent $pipe readable [list Reader $pipe]
 
-vwait forever
+#vwait forever
  
