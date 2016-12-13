@@ -49,3 +49,4 @@ hwall  322  384   60  black ; wall between front door and dining room window
 hwin   328  456   30  blue ; south fixed window dining room
 #hwin   328  492   30  blue   ; dining room sliding window
 hwin   322  524   30  blue ; north fixed window dining room
+

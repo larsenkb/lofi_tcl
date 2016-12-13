@@ -1,117 +1,86 @@
 #!/usr/bin/tclsh
 #
 
-set default "index.html"
-
-
 proc EchoAccept {sock addr port} {
   global echo
   set echo(addr,$sock) [list $addr $port]
   fileevent $sock readable [list Echo $sock]
 }
 
-proc BuildStyle {} {
-	global scontent
-	global wallColor
-	global winColor
-	global doorColor
+proc InitStyleContent { dcontent wallColor winColor doorColor } {
+	upvar $dcontent content
 
-	set    scontent "<html>\r\n"
-	append scontent "<head>\r\n"
-	append scontent "<style>\r\n"
-	append scontent "hwall {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    height: 0px;\r\n"
-	append scontent "    border: 6px solid $wallColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "vwall {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    width: 0px;\r\n"
-	append scontent "    border: 6px solid $wallColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "hwin {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    height: 0px;\r\n"
-	append scontent "    border: 3px solid $winColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "vwin {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    width: 0px;\r\n"
-	append scontent "    border: 3px solid $winColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "hdoor {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    height: 0px;\r\n"
-	append scontent "    border: 4px solid $doorColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "vdoor {\r\n"
-	append scontent "    position: absolute;\r\n"
-	append scontent "    width: 0px;\r\n"
-	append scontent "    border: 4px solid $doorColor;\r\n"
-	append scontent "}\r\n"
-	append scontent "</style>\r\n"
-	append scontent "</head>\r\n"
+	append content "<html>\r\n"
+	append content "<head>\r\n"
+	append content "<style>\r\n"
+	append content "hwall {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    height: 0px;\r\n"
+	append content "    border: 6px solid $wallColor;\r\n"
+	append content "}\r\n"
+	append content "vwall {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    width: 0px;\r\n"
+	append content "    border: 6px solid $wallColor;\r\n"
+	append content "}\r\n"
+	append content "hwin {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    height: 0px;\r\n"
+	append content "    border: 3px solid $winColor;\r\n"
+	append content "}\r\n"
+	append content "vwin {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    width: 0px;\r\n"
+	append content "    border: 3px solid $winColor;\r\n"
+	append content "}\r\n"
+	append content "hdoor {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    height: 0px;\r\n"
+	append content "    border: 4px solid $doorColor;\r\n"
+	append content "}\r\n"
+	append content "vdoor {\r\n"
+	append content "    position: absolute;\r\n"
+	append content "    width: 0px;\r\n"
+	append content "    border: 4px solid $doorColor;\r\n"
+	append content "}\r\n"
+	append content "</style>\r\n"
+	append content "</head>\r\n"
 }
 
+# proc SendResponse
 proc BuildBody {sock} {
-  global echo
-  global scontent
-  global bcontent
-  global fixedBodyContent
-  global Top
-  global Left
-    fconfigure $sock -translation binary -buffering none
-    set bcontent "<body>"
-    append bcontent "<meta http-equiv=\"refresh\" content=\"5\">"
+  global staticContent
+  global dynamicContent
+  global staticContentSize
 
-	append bcontent $fixedBodyContent
+  BuildDynamicContent dynamicContent
 
-    append bcontent "</body>"
-    append bcontent "</html>"
-	append content $scontent $bcontent
-    puts -nonewline $sock "HTTP/1.1 200 OK\r\n"
-    puts -nonewline $sock "Content-Type: text/html;\r\n"
-    puts -nonewline $sock "Connection: keep-alive;\r\n"
-    puts -nonewline $sock "Content-length: [string length $content];\r\n"
-    puts -nonewline $sock "\r\n"
-    puts -nonewline $sock "$content"
-    incr echo(counter)
+  set ByteCount [expr $staticContentSize + [string length $dynamicContent] + 14]
+
+  fconfigure $sock -translation binary -buffering none
+  puts -nonewline $sock "HTTP/1.1 200 OK\r\n"
+  puts -nonewline $sock "Content-Type: text/html;\r\n"
+  puts -nonewline $sock "Connection: keep-alive;\r\n"
+  puts -nonewline $sock "Content-length: $ByteCount;\r\n"
+  puts -nonewline $sock "\r\n"
+  puts -nonewline $sock $staticContent
+  puts -nonewline $sock $dynamicContent
+  puts -nonewline $sock "</body>"
+  puts -nonewline $sock "</html>"
+  incr echo(counter)
 }
-
-#proc Echo {sock} {
-#  global echo
-#  fconfigure $sock -blocking 0
-#  set line [gets $sock]
-#  gets $sock lline
-#  while {[string compare $lline ""] != 0} {
-#    gets $sock lline
-#  }
-#  set shortName "/"
-#  regexp {/[^ ]*} $line shortName
-#  set many [string length $shortName]
-#  set last [string index $shortName [expr {$many-1}]]
-#  if {$last=="/"} then {set shortName "/"}
-#  set wholeName $shortName
-#    if {$wholeName=="/"} {
-#        BuildBody $sock
-#    } else {
-##        set imgFile [string range $wholeName 1 end]
-##        BuildPng $sock $imgFile
-#    }
-#}
 
 proc Echo {sock} {
   global echo
+
   fconfigure $sock -blocking 0
   set line [gets $sock]
-  gets $sock lline
-  while {[string compare $lline ""] != 0} {
-    gets $sock lline
-  }
+  # consume all
+  while {[gets $sock lline] >= 0} { }
   BuildBody $sock
 }
 
-proc BuildDynamic {} {
+proc BBuildDynamic {} {
 	global dynamicBodyContent
 	global dyNodes
 	global Nodes
@@ -142,25 +111,27 @@ proc BuildDynamic {} {
 	}
 }
 
-proc BuildFixed {filename} {
-	global fixedBodyContent
-	global echo
+proc InitStaticContent { filename dcontent } {
+	upvar $dcontent content
 
 	set fp [open $filename r]
 	fconfigure $fp -buffering line
-	while {true} {
+
+	append content "<body>"
+	append content "<meta http-equiv=\"refresh\" content=\"5\">"
+
+	while {[gets $fp line] >= 0} {
 		if [eof $fp] {
-			catch {close $fp}
+#			catch {close $fp}
 			break
 		}
-		gets $fp line
+#		gets $fp line
 		if {[string index $line 0] == "#"} {
 			continue
 		}
 		if {[string index $line 0] == ";"} {
 			continue
 		}
-		#puts $line
 		set Tag [lindex $line 0]
 		if {$Tag eq "vwall"} {
 			set Length "height:"
@@ -175,8 +146,10 @@ proc BuildFixed {filename} {
 		set Left [lindex $line 2]
 		append Length [lindex $line 3]
 		set Color [lindex $line 4]
-		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
+		if {[string length $Color] == 0} {break}
+		append content "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
 	}
+	catch {close $fp}
 }
 
 proc parseDynamic {filename} {
@@ -220,6 +193,10 @@ proc parseDynamic {filename} {
 	}
 }
 
+proc BuildDynamicContent { dcontent } {
+	upvar $dcontent content
+	set content {}
+}
 
 proc shift {ls} {
 	upvar 1 $ls LIST
@@ -259,6 +236,7 @@ puts $Nodes
 }
 
 
+set PWD [pwd]
 set Nodes {}
 set dyNodes {}
 set Left 50
@@ -266,17 +244,17 @@ set Top 180
 set wallColor black 
 set winColor green 
 set doorColor brown 
-set bcontent {}
-set scontent {}
-set content {}
-set fixedBodyContent {}
+set staticContent {} 
+set dynamicContent {}
 set echo(counter) 0
 set echo(port) [lindex $argv 0]
 set echo(home) [lindex $argv 1]
-BuildStyle
-set PWD [pwd]
-BuildFixed ${PWD}/fixed.txt
+InitStyleContent staticContent $wallColor $winColor $doorColor
+InitStaticContent ${PWD}/fixed.txt staticContent
 parseDynamic ${PWD}/dynamic.txt
+set staticContentSize [string length $staticContent]
+puts "staticContentSize: $staticContentSize"
+
 #BuildFixed $echo(home)/fixed.txt
 #parseDynamic $echo(home)/dynamic.txt
 #puts $fixedBodyContent
@@ -288,5 +266,5 @@ set echo(main) [socket -server EchoAccept $echo(port)]
 #fconfigure $pipe -buffering line
 #fileevent $pipe readable [list Reader $pipe]
 
-#vwait forever
+vwait forever
  
