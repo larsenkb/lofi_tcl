@@ -6,9 +6,10 @@ vwall  293   50  200  black ; southern wall
 vdoor  504   52   40  brown   ; garage south door
 vwall  552   50  100  black ; southeast wall
 hwall  662   50   20  black ; south east facing garage wall
+hdoor  664   82  170  brown ; garage rollup door 
 hwall  662  248   20  black ; north east facing garage wall
 vwall  550  268  100  black ; eastern north facing garage wall
-vdoor  502  270   40  brown   ; north garage door
+#vdoor  502  270   40  brown   ; north garage door
 vwall  410  268   80  black ; western north facing garage wall
 vwin   388  268   17  blue	; front room eastern sliding window
 vwin   348  274   40  blue ; front room fixed window
@@ -40,13 +41,18 @@ hwall  516  790   10  black ; toy room wall east facing north corner
 hwin   522  754   30  blue ; toy room fixed window
 hwin   516  724   30  blue   ; toy room sliding window
 hwall  516  652   60  black ; east wall girls bathroom
-vwall  444  652   60  black ; girls bathroom south wall eastern corner
+vwall  474  652   30  black ; girls bathroom south wall eastern corner
 #vdoor  396  654   40  brown   ; hall outside door
 hwall  322  268   10  black ; front door south wall
 hdoor  324  290   40  brown   ; front door south
 hdoor  324  338   40  brown   ; front door north
-hwall  322  384   60  black ; wall between front door and dining room window
-hwin   328  456   30  blue ; south fixed window dining room
+hwall  322  384   70  black ; wall between front door and dining room window
+hwin   328  466   30  blue ; south fixed window dining room
 #hwin   328  492   30  blue   ; dining room sliding window
-hwin   322  524   30  blue ; north fixed window dining room
+hwin   322  534   30  blue ; north fixed window dining room
+hwall  322  570   70  black ; wall between dining room window and hallway
+vwall  322  652   20  black ; wall west of external hall door
+vwall  396  652   26  black ; wall west of external hall door
+vwin   434  658   14  blue ; girls bathroom sliding window
+vwin   454  652   14  blue   ; girls bathroom fixed window
 

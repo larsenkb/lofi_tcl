@@ -1,11 +1,58 @@
-0 SW1 SHUT na
-0 SW1 OPEN na
-0 SW2 SHUT na
-0 SW2 OPEN na
+1 SW1 SHUT hwin   328  502   30  green   ; dining room sliding window
+1 SW1 OPEN hwin   328  502   30  red     ; dining room sliding window
+1 SW2 SHUT na                            ; dining room sliding window
+1 SW2 OPEN na                            ; dining room sliding window
+2 SW1 SHUT na
+2 SW1 OPEN na
+2 SW2 SHUT na
+2 SW2 OPEN na
+3 SW1 SHUT na
+3 SW1 OPEN na
+3 SW2 SHUT na
+3 SW2 OPEN na
+4 SW1 SHUT na
+4 SW1 OPEN na
+4 SW2 SHUT na
+4 SW2 OPEN na
+5 SW1 SHUT vdoor  502  270   40  green   ; north garage door
+5 SW1 OPEN vdoor  502  270   40  red     ; north garage door
+5 SW2 SHUT na                            ; north garage door
+5 SW2 OPEN na                            ; north garage door
+6 SW1 SHUT na
+6 SW1 OPEN na
+6 SW2 SHUT na
+6 SW2 OPEN na
+7 SW1 SHUT na
+7 SW1 OPEN na
+7 SW2 SHUT na
+7 SW2 OPEN na
+8 SW1 SHUT vdoor  354  654   34  green   ; hall outside door
+8 SW1 OPEN vdoor  354  654   34  red     ; hall outside door
+8 SW2 SHUT na                            ; hall outside door
+8 SW2 OPEN na                            ; hall outside door
+9 SW1 SHUT na
+9 SW1 OPEN na
+9 SW2 SHUT na
+9 SW2 OPEN na
+10 SW1 SHUT na
+10 SW1 OPEN na
+10 SW2 SHUT na
+10 SW2 OPEN na
+11 SW1 SHUT hdoor  182  574   40  green   ; washing room door
+11 SW1 OPEN hdoor  182  574   40  red     ; washing room door
+11 SW2 SHUT na                            ; washing room door
+11 SW2 OPEN na                            ; washing room door
+12 SW1 SHUT na
+12 SW1 OPEN na
+12 SW2 SHUT na
+12 SW2 OPEN na
+13 SW1 SHUT na
+13 SW1 OPEN na
+13 SW2 SHUT na
+13 SW2 OPEN na
 #vwin   212   56   17  blue	; master bedroom western sliding window
 #vwin   270   56   17  blue	; master bedroom eastern sliding window
 #vdoor  504   52   40  brown   ; garage south door
-#vdoor  502  270   40  brown   ; north garage door
 #vwin   388  268   17  blue	; front room eastern sliding window
 #vwin   332  268   17  blue	; front room western sliding window
 #hwin   180   82   14  blue
@@ -15,20 +62,8 @@
 #hwin   186  244   20  blue   ; computer room south sliding window
 #hwin   186  318   20  blue   ; computer room north sliding window
 #hwin   186  456   30  blue   ; kitchen sliding window
-11 SW1 SHUT hdoor  182  574   40  green   ; washing room door
-11 SW1 OPEN hdoor  182  574   40  red     ; washing room door
-11 SW2 SHUT na                            ; washing room door
-11 SW2 OPEN na                            ; washing room door
 #hwin   186  756   30  blue   ; boys sliding window
 #vwin   350  810   30  blue   ; girls sliding window
 #hwin   516  724   30  blue   ; toy room sliding window
-8 SW1 SHUT vdoor  396  654   40  green   ; hall outside door
-8 SW1 OPEN vdoor  396  654   40  red     ; hall outside door
-8 SW2 SHUT na                            ; hall outside door
-8 SW2 OPEN na                            ; hall outside door
 #hdoor  324  290   40  brown   ; front door south
 #hdoor  324  338   40  brown   ; front door north
-1 SW1 SHUT hwin   328  492   30  green   ; dining room sliding window
-1 SW1 OPEN hwin   328  492   30  red     ; dining room sliding window
-1 SW2 SHUT na                           ; dining room sliding window
-1 SW2 OPEN na                           ; dining room sliding window

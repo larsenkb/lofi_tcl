@@ -3,6 +3,7 @@
 
 proc EchoAccept {sock addr port} {
   global echo
+	puts "sock: $sock  addr: $addr  port: $port"
   set echo(addr,$sock) [list $addr $port]
   fileevent $sock readable [list Echo $sock]
 }
@@ -10,41 +11,42 @@ proc EchoAccept {sock addr port} {
 proc InitStyleContent { dcontent wallColor winColor doorColor } {
 	upvar $dcontent content
 
-	append content "<html>\r\n"
-	append content "<head>\r\n"
-	append content "<style>\r\n"
-	append content "hwall {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    height: 0px;\r\n"
-	append content "    border: 6px solid $wallColor;\r\n"
-	append content "}\r\n"
-	append content "vwall {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    width: 0px;\r\n"
-	append content "    border: 6px solid $wallColor;\r\n"
-	append content "}\r\n"
-	append content "hwin {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    height: 0px;\r\n"
-	append content "    border: 3px solid $winColor;\r\n"
-	append content "}\r\n"
-	append content "vwin {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    width: 0px;\r\n"
-	append content "    border: 3px solid $winColor;\r\n"
-	append content "}\r\n"
-	append content "hdoor {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    height: 0px;\r\n"
-	append content "    border: 4px solid $doorColor;\r\n"
-	append content "}\r\n"
-	append content "vdoor {\r\n"
-	append content "    position: absolute;\r\n"
-	append content "    width: 0px;\r\n"
-	append content "    border: 4px solid $doorColor;\r\n"
-	append content "}\r\n"
-	append content "</style>\r\n"
-	append content "</head>\r\n"
+	append content "<html>"
+	append content "<head>"
+	append content "<meta http-equiv=\"refresh\" content=\"5\">"
+	append content "<style>"
+	append content "hwall {"
+	append content "    position: absolute;"
+	append content "    height: 0px;"
+	append content "    border: 6px solid $wallColor;"
+	append content "}"
+	append content "vwall {"
+	append content "    position: absolute;"
+	append content "    width: 0px;"
+	append content "    border: 6px solid $wallColor;"
+	append content "}"
+	append content "hwin {"
+	append content "    position: absolute;"
+	append content "    height: 0px;"
+	append content "    border: 3px solid $winColor;"
+	append content "}"
+	append content "vwin {"
+	append content "    position: absolute;"
+	append content "    width: 0px;"
+	append content "    border: 3px solid $winColor;"
+	append content "}"
+	append content "hdoor {"
+	append content "    position: absolute;"
+	append content "    height: 0px;"
+	append content "    border: 4px solid $doorColor;"
+	append content "}"
+	append content "vdoor {"
+	append content "    position: absolute;"
+	append content "    width: 0px;"
+	append content "    border: 4px solid $doorColor;"
+	append content "}"
+	append content "</style>"
+	append content "</head>"
 }
 
 # proc SendResponse
@@ -53,8 +55,12 @@ proc BuildBody {sock} {
   global dynamicContent
   global staticContentSize
 
-  BuildDynamicContent dynamicContent
+  BuildDynamicContent
+#	puts $dynamicContent
+#	puts "dynContent length: [string length $dynamicContent]"
+#  flush stdout
 
+#  set ByteCount [expr $staticContentSize + 14] 
   set ByteCount [expr $staticContentSize + [string length $dynamicContent] + 14]
 
   fconfigure $sock -translation binary -buffering none
@@ -65,19 +71,27 @@ proc BuildBody {sock} {
   puts -nonewline $sock "\r\n"
   puts -nonewline $sock $staticContent
   puts -nonewline $sock $dynamicContent
-  puts -nonewline $sock "</body>"
-  puts -nonewline $sock "</html>"
+  puts -nonewline $sock "</body></html>"
   incr echo(counter)
+	close $sock
 }
 
-proc Echo {sock} {
+proc Echo { sock } {
   global echo
 
   fconfigure $sock -blocking 0
   set line [gets $sock]
+	puts $line
   # consume all
-  while {[gets $sock lline] >= 0} { }
-  BuildBody $sock
+  while {[gets $sock lline] >= 0} {
+#		puts $lline
+  }
+	if {[lindex $line 1] == "/"} {
+		set dynamicContent {}
+  	BuildBody $sock
+	} else {
+		close $sock
+	}
 }
 
 proc BBuildDynamic {} {
@@ -107,7 +121,7 @@ proc BBuildDynamic {} {
 		set Left [lindex $line 2]
 		append Length [lindex $line 3]
 		set Color [lindex $line 4]
-		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
+		append fixedBodyContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>"
 	}
 }
 
@@ -118,7 +132,7 @@ proc InitStaticContent { filename dcontent } {
 	fconfigure $fp -buffering line
 
 	append content "<body>"
-	append content "<meta http-equiv=\"refresh\" content=\"5\">"
+#	append content "<meta http-equiv=\"refresh\" content=\"5\">"
 
 	while {[gets $fp line] >= 0} {
 		if [eof $fp] {
@@ -147,13 +161,14 @@ proc InitStaticContent { filename dcontent } {
 		append Length [lindex $line 3]
 		set Color [lindex $line 4]
 		if {[string length $Color] == 0} {break}
-		append content "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
+		append content "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>"
 	}
 	catch {close $fp}
 }
 
 proc parseDynamic {filename} {
 	global dyNodes
+	global Nodes
 
 	set fp [open $filename r]
 	fconfigure $fp -buffering line
@@ -179,24 +194,75 @@ proc parseDynamic {filename} {
 		set State [shift LList]
 #		lassign $List Node Switch State Type Top Left Length Color
 #		puts "Node=$Node  Switch=$Switch  State=$State  Type=$Type  Top=$Top  Left=$Left Length=$Length Color=$Color"
+
 		if {[lindex $LList 0] != "na"} {
-			dict set dyNodes $Node $Switch $State Enb 1
-			dict set dyNodes $Node $Switch $State Css $LList
-#			dict set dyNodes $Node $Switch $State Type $Type
-#			dict set dyNodes $Node $Switch $State Top $Top
-#			dict set dyNodes $Node $Switch $State Left $Left
-#			dict set dyNodes $Node $Switch $State Length $Length
-#			dict set dyNodes $Node $Switch $State Color $Color
+			dict set dyNodes ${Node} ${Switch}${State} $LList
 		} else {
-			dict set dyNodes $Node $Switch $State Enb 0
+			dict set dyNodes ${Node} ${Switch}${State} "na" 
 		}
+		dict set Nodes $Node State Dis
+		dict set Nodes $Node SW1 na
+		dict set Nodes $Node SW2 na
+		dict set Nodes $Node Ctr 0
+		dict set Nodes $Node Vcc 0
+		dict set Nodes $Node Temp 0
 	}
 }
 
-proc BuildDynamicContent { dcontent } {
-	upvar $dcontent content
-	set content {}
+proc BuildDynamicContent { } {
+	global dynamicContent
+	global Nodes
+	global dyNodes
+	global echo
+
+#	set dynamicContent "<p>$echo(counter)</p>"
+#	incr echo(counter)
+	
+if {1} {
+	puts "Enter BuildDynamicContent"
+
+	foreach NodeIdValue [dict keys $Nodes] {
+  	set value [dict get $Nodes $NodeIdValue]
+		set val1 [dict get $value "SW1"]
+		if {$val1 != "na"} {
+			set value1 [dict get $dyNodes $NodeIdValue]
+			set val11 [dict get $value1 "SW1${val1}"]
+			puts $val11
+			BuildDynamicItem $val11
+		}
+  	set val2 [dict get $value "SW2"]
+		if {$val2 != "na"} {
+			set value2 [dict get $dyNodes $NodeIdValue]
+			set val22 [dict get $value2 "SW2${val2}"]
+			puts $val22
+			BuildDynamicItem $val22
+		}
+	}
+	puts "Exit BuildDynamicContent"
 }
+}
+
+proc BuildDynamicItem { line } {
+	global dynamicContent
+
+	#puts $line
+	set Tag [lindex $line 0]
+	if {$Tag eq "vwall"} {
+		set Length "height:"
+	} elseif {$Tag eq "vwin"} {
+		set Length "height:"
+	} elseif {$Tag eq "vdoor"} {
+		set Length "height:"
+	} else {
+		set Length "width:"
+	}
+	set Top [lindex $line 1]
+	set Left [lindex $line 2]
+	append Length [lindex $line 3]
+	set Color [lindex $line 4]
+	append dynamicContent "<$Tag style=\"top:${Top}px;left:${Left}px;${Length}px;border-color:$Color\"></$Tag>\r\n"
+}
+
 
 proc shift {ls} {
 	upvar 1 $ls LIST
@@ -209,6 +275,8 @@ proc shift {ls} {
 
 proc Reader { pipe } {
 	global Nodes
+	global dyNodes
+
 	if [eof $pipe] {
 		catch {close $pipe}
 		return
@@ -217,9 +285,10 @@ proc Reader { pipe } {
 	puts $LIST
 #	set LIST [list $line]
 	set Time [shift LIST]
-	puts -nonewline "Time: $Time  "
+#	puts -nonewline "Time: $Time  "
 	set NodeIdKey [shift LIST]
 	set NodeIdValue [shift LIST]
+	dict set Nodes $NodeIdValue State Enb
 #	foreach {Key Value} $LIST 
 	while {[llength $LIST]} {
 #		set ret [lindex $LIST 0]
@@ -228,11 +297,14 @@ proc Reader { pipe } {
 		set Key [shift LIST]
 		regexp {^[^:]+} $Key  Key
 		set Value [shift LIST]
-		puts -nonewline "$Key = $Value  "
+#		puts -nonewline "$Key = $Value  "
 		dict set Nodes $NodeIdValue $Key $Value
 	}
-puts "\r\nNumber of Nodes: [dict size $Nodes]"
-puts $Nodes
+
+#puts "Number of Nodes: [dict size $Nodes]"
+#puts $Nodes
+
+
 }
 
 
@@ -249,11 +321,18 @@ set dynamicContent {}
 set echo(counter) 0
 set echo(port) [lindex $argv 0]
 set echo(home) [lindex $argv 1]
+set echo(counter) 0
 InitStyleContent staticContent $wallColor $winColor $doorColor
 InitStaticContent ${PWD}/fixed.txt staticContent
 parseDynamic ${PWD}/dynamic.txt
 set staticContentSize [string length $staticContent]
 puts "staticContentSize: $staticContentSize"
+if {1} {
+foreach item [dict keys $dyNodes] {
+	set value [dict get $dyNodes $item]
+	puts "$item: $value"
+}
+}
 
 #BuildFixed $echo(home)/fixed.txt
 #parseDynamic $echo(home)/dynamic.txt
@@ -262,9 +341,11 @@ puts "staticContentSize: $staticContentSize"
 puts "Socket Port $echo(port);  Home $echo(home)"
 set echo(main) [socket -server EchoAccept $echo(port)]
 
-#set pipe [open "|sudo ./lofi_rpi -lS"]
-#fconfigure $pipe -buffering line
-#fileevent $pipe readable [list Reader $pipe]
+if {1} {
+set pipe [open "|sudo ./lofi_rpi -lS"]
+fconfigure $pipe -buffering line
+fileevent $pipe readable [list Reader $pipe]
+}
 
 vwait forever
  
