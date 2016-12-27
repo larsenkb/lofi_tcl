@@ -78,6 +78,7 @@ proc BuildBody {sock} {
 
 proc Echo { sock } {
   global echo
+	global dynamicContent
 
   fconfigure $sock -blocking 0
   set line [gets $sock]
@@ -288,10 +289,11 @@ proc Reader { pipe } {
 		catch {close $pipe}
 		return
 	}
+	set timeStamp [clock seconds]
 	gets $pipe LIST
-	puts $LIST
+	puts "$timeStamp $LIST"
 #	set LIST [list $line]
-	set Time [shift LIST]
+#	set Time [shift LIST]
 #	puts -nonewline "Time: $Time  "
 	set NodeIdKey [shift LIST]
 	set NodeIdValue [shift LIST]
@@ -307,6 +309,7 @@ proc Reader { pipe } {
 #		puts -nonewline "$Key = $Value  "
 		dict set Nodes $NodeIdValue $Key $Value
 	}
+	dict set Nodes $NodeIdValue timeStamp $timeStamp
 }
 
 

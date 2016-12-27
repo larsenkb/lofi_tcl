@@ -1,5 +1,5 @@
 1 SW1 SHUT hwin   328  502   30  green   ; dining room sliding window
-1 SW1 OPEN hwin   328  502   30  red     ; dining room sliding window
+1 SW1 OPEN hwin   328  522   30  red     ; dining room sliding window
 1 SW2 SHUT na                            ; dining room sliding window
 1 SW2 OPEN na                            ; dining room sliding window
 2 SW1 SHUT na
