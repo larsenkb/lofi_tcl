@@ -284,14 +284,19 @@ proc shift {ls} {
 proc Reader { pipe } {
 	global Nodes
 	global dyNodes
+	global echo
 
 	if [eof $pipe] {
+		close $echo(logFd)
 		catch {close $pipe}
 		return
 	}
 	set timeStamp [clock seconds]
 	gets $pipe LIST
 	puts "$timeStamp $LIST"
+	puts $echo(logFd) "$timeStamp $LIST"
+	flush $echo(logFd)
+
 #	set LIST [list $line]
 #	set Time [shift LIST]
 #	puts -nonewline "Time: $Time  "
@@ -345,6 +350,9 @@ foreach item [dict keys $dyNodes] {
 #puts $scontent
 #puts "Socket Port $echo(port);  Home $echo(home)"
 set echo(main) [socket -server EchoAccept $echo(port)]
+
+set echo(logFd) [open $echo(home)/lofi_rx.log a+]
+fconfigure $echo(logFd) -buffering line
 
 if {1} {
 set pipe [open "|sudo ./lofi_rpi -lS"]
