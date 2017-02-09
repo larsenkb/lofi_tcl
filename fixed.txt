@@ -31,11 +31,11 @@ hwall  180  492   70  black ; west wall between kitchen and washing room door
 #hdoor  182  574   40  brown   ; washing room door
 hwall  180  622   90  black ; west wall between washing room and boys bedroom
 hwin   180  724   30  blue ; boys fixed window
-hwin   186  756   30  blue   ; boys sliding window
+#hwin   186  756   30  blue   ; boys sliding window
 hwall  180  790   20  black ; west window north corner
 vwall  180  810  130  black ; north wall west corner
 vwin   320  816   30  blue ; girls fixed window
-vwin   350  810   30  blue   ; girls sliding window
+#vwin   350  810   30  blue   ; girls sliding window
 vwall  386  810  130  black ; north wall east corner
 hwall  516  790   10  black ; toy room wall east facing north corner
 hwin   522  754   30  blue ; toy room fixed window
@@ -45,7 +45,7 @@ vwall  474  652   30  black ; girls bathroom south wall eastern corner
 #vdoor  396  654   40  brown   ; hall outside door
 hwall  322  268   10  black ; front door south wall
 hdoor  324  290   40  brown   ; front door south
-hdoor  324  338   40  brown   ; front door north
+#hdoor  324  338   40  brown   ; front door north
 hwall  322  384   70  black ; wall between front door and dining room window
 hwin   328  466   30  blue ; south fixed window dining room
 #hwin   328  492   30  blue   ; dining room sliding window

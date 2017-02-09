@@ -351,7 +351,7 @@ foreach item [dict keys $dyNodes] {
 #puts "Socket Port $echo(port);  Home $echo(home)"
 set echo(main) [socket -server EchoAccept $echo(port)]
 
-set echo(logFd) [open $echo(home)/lofi_rx.log a+]
+set echo(logFd) [open $echo(home)/lofi_rx.log a]
 fconfigure $echo(logFd) -buffering line
 
 if {1} {
