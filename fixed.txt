@@ -39,7 +39,7 @@ vwin   320  816   30  blue ; girls fixed window
 vwall  386  810  130  black ; north wall east corner
 hwall  516  790   10  black ; toy room wall east facing north corner
 hwin   522  754   30  blue ; toy room fixed window
-hwin   516  724   30  blue   ; toy room sliding window
+#hwin   516  724   30  blue   ; toy room sliding window
 hwall  516  652   60  black ; east wall girls bathroom
 vwall  474  652   30  black ; girls bathroom south wall eastern corner
 #vdoor  396  654   40  brown   ; hall outside door

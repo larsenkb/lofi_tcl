@@ -30,8 +30,8 @@
 8 SW1 OPEN vdoor  354  654   34  red     ; hall outside door
 8 SW2 SHUT na                            ; hall outside door
 8 SW2 OPEN na                            ; hall outside door
-9 SW1 SHUT na
-9 SW1 OPEN na
+9 SW1 SHUT hwin   516  724   30  green   ; toy room sliding window
+9 SW1 OPEN hwin   516  724   30  red     ; toy room sliding window
 9 SW2 SHUT na
 9 SW2 OPEN na
 10 SW1 SHUT na
@@ -50,6 +50,22 @@
 13 SW1 OPEN na
 13 SW2 SHUT na
 13 SW2 OPEN na
+14 SW1 SHUT na
+14 SW1 OPEN na
+14 SW2 SHUT na
+14 SW2 OPEN na
+15 SW1 SHUT na
+15 SW1 OPEN na
+15 SW2 SHUT na
+15 SW2 OPEN na
+16 SW1 SHUT na
+16 SW1 OPEN na
+16 SW2 SHUT na
+16 SW2 OPEN na
+17 SW1 SHUT na
+17 SW1 OPEN na
+17 SW2 SHUT na
+17 SW2 OPEN na
 #vwin   212   56   17  blue	; master bedroom western sliding window
 #vwin   270   56   17  blue	; master bedroom eastern sliding window
 #vdoor  504   52   40  brown   ; garage south door

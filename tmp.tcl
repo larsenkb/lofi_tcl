@@ -219,6 +219,8 @@ proc parseDynamic {filename} {
 		dict set Nodes $Node Ctr 0
 		dict set Nodes $Node Vcc 0
 		dict set Nodes $Node Temp 0
+		dict set Nodes $Node VccLow no
+		dict set Nodes $Node TimeoutId none
 	}
 }
 
@@ -281,6 +283,19 @@ proc shift {ls} {
 	}
 }
 
+proc NodeTimeout { nodeid } {
+	global Nodes
+
+	dict set Nodes $nodeid TimeoutId none
+
+	set mail "Subject: InactiveNode\n\nNode: $nodeid"
+	puts $mail
+	set chan [open "|/usr/bin/msmtp -a default kent.b.larsen@gmail.com" r+]
+	puts $chan $mail
+	flush $chan
+	close $chan
+}
+
 proc Reader { pipe } {
 	global Nodes
 	global dyNodes
@@ -303,6 +318,14 @@ proc Reader { pipe } {
 	set NodeIdKey [shift LIST]
 	set NodeIdValue [shift LIST]
 	dict set Nodes $NodeIdValue State Enb
+
+	set timeoutId [dict get $Nodes $NodeIdValue TimeoutId]
+	if { $timeoutId != "none" } {
+		after cancel $timeoutId
+	}
+	set timeoutId [after [expr {1000*60*10}] NodeTimeout $NodeIdValue]
+	dict set Nodes $NodeIdValue TimeoutId $timeoutId
+
 #	foreach {Key Value} $LIST 
 	while {[llength $LIST]} {
 #		set ret [lindex $LIST 0]
@@ -311,7 +334,24 @@ proc Reader { pipe } {
 		set Key [shift LIST]
 		regexp {^[^:]+} $Key  Key
 		set Value [shift LIST]
-#		puts -nonewline "$Key = $Value  "
+		if {$Key == "Vcc"} {
+#			puts "$Key = $Value"
+			if {[expr {$Value < 2.5}]} {
+				set tval [dict get $Nodes $NodeIdValue VccLow]
+#				puts "tval = $tval"
+				if {$tval == "no"} {
+					puts "$Value < 2.5"
+# send mail notification
+					set mail "Subject: LowVcc\n\nNode: $NodeIdValue  Vcc: $Value"
+					puts $mail
+					set chan [open "|/usr/bin/msmtp -a default kent.b.larsen@gmail.com" r+]
+					puts $chan $mail
+					flush $chan
+					close $chan
+					dict set Nodes $NodeIdValue VccLow yes
+				}
+			}
+  	}
 		dict set Nodes $NodeIdValue $Key $Value
 	}
 	dict set Nodes $NodeIdValue timeStamp $timeStamp
