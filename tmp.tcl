@@ -2,9 +2,9 @@
 #
 
 proc EchoAccept {sock addr port} {
-  global echo
+  global cfgs
 #	puts "sock: $sock  addr: $addr  port: $port"
-  set echo(addr,$sock) [list $addr $port]
+  set cfgs(addr,$sock) [list $addr $port]
   fileevent $sock readable [list Echo $sock]
 }
 
@@ -72,12 +72,12 @@ proc BuildBody {sock} {
   puts -nonewline $sock $staticContent
   puts -nonewline $sock $dynamicContent
   puts -nonewline $sock "</body></html>"
-  incr echo(counter)
+  incr cfgs(counter)
 	close $sock
 }
 
 proc Echo { sock } {
-  global echo
+  global cfgs
 	global dynamicContent
 
   fconfigure $sock -blocking 0
@@ -192,35 +192,50 @@ proc parseDynamic {filename} {
 		if {[string index $line 0] == ";"} {
 			continue
 		}
-#		puts $line
 		# remove trailing comments
-		regexp {^[^;]+} $line  List
+#		puts $line
+		regexp {^[^;]+} $line  LList
+#		puts $LList
 		# separate words with one space character
-		set LList [regexp -inline -all -- {\S+} $List]
+#		set LList [regexp -inline -all -- {\S+} $List]
+#		puts $LList
 		set Node [shift LList]
 		set Switch [shift LList]
 		set State [shift LList]
+		set Location [shift LList]
+#		puts "Location: $Location"
+
 #		lassign $List Node Switch State Type Top Left Length Color
 #		puts "Node=$Node  Switch=$Switch  State=$State  Type=$Type  Top=$Top  Left=$Left Length=$Length Color=$Color"
 
+#		puts $LList
 		if {[lindex $LList 0] != "na"} {
 #			puts $LList
 			set Top [expr [lindex $LList 1] + $Top_Offset]
 			set Left [expr [lindex $LList 2] + $Left_Offset]
 			set LLList [lreplace $LList 1 2 $Top $Left]
 #			puts $LLList
+#			dict set dyNodes ${Node} Location $Location
 			dict set dyNodes ${Node} ${Switch}${State} $LLList
 		} else {
+#			dict set dyNodes ${Node} Location $Location
 			dict set dyNodes ${Node} ${Switch}${State} "na" 
 		}
+#		puts "$Node $Location"
+			dict set dyNodes $Node Location $Location
 		dict set Nodes $Node State Dis
 		dict set Nodes $Node SW1 na
 		dict set Nodes $Node SW2 na
 		dict set Nodes $Node Ctr 0
-		dict set Nodes $Node Vcc 0
+		dict set Nodes $Node Vcc 0.00
 		dict set Nodes $Node Temp 0
 		dict set Nodes $Node VccLow no
 		dict set Nodes $Node TimeoutId none
+		dict set Nodes $Node VccTick 0
+		dict set Nodes $Node TempTick 0
+		dict set Nodes $Node CtrTick 0
+		dict set Nodes $Node SW1Tick 0
+		dict set Nodes $Node SW2Tick 0
 	}
 }
 
@@ -228,18 +243,20 @@ proc BuildDynamicContent { } {
 	global dynamicContent
 	global Nodes
 	global dyNodes
-	global echo
+	global cfgs
 
-#	set dynamicContent "<p>$echo(counter)</p>"
-#	incr echo(counter)
+#	set dynamicContent "<p>$cfgs(counter)</p>"
+#	incr cfgs(counter)
 	
 	foreach NodeIdValue [dict keys $Nodes] {
   	set value [dict get $Nodes $NodeIdValue]
+#		puts "$NodeIdValue value = $value"
 		set val1 [dict get $value "SW1"]
+#		puts "$NodeIdValue val1 = $val1"
 		if {$val1 != "na"} {
 			set value1 [dict get $dyNodes $NodeIdValue]
 			set val11 [dict get $value1 "SW1${val1}"]
-#			puts $val11
+#		  puts "$NodeIdValue  val11 = $val11"
 			BuildDynamicItem $val11
 		}
   	set val2 [dict get $value "SW2"]
@@ -255,7 +272,7 @@ proc BuildDynamicContent { } {
 proc BuildDynamicItem { line } {
 	global dynamicContent
 
-	#puts $line
+#	puts $line
 	set Tag [lindex $line 0]
 	if {$Tag eq "vwall"} {
 		set Length "height:"
@@ -285,10 +302,12 @@ proc shift {ls} {
 
 proc NodeTimeout { nodeid } {
 	global Nodes
+	global dyNodes
 
 	dict set Nodes $nodeid TimeoutId none
+	set location [dict get $dyNodes $nodeid Location]
 
-	set mail "Subject: InactiveNode\n\nNode: $nodeid"
+	set mail "Subject: InactiveNode $nodeid $Location\n\nNode: $nodeid"
 	puts $mail
 	set chan [open "|/usr/bin/msmtp -a default kent.b.larsen@gmail.com" r+]
 	puts $chan $mail
@@ -299,18 +318,18 @@ proc NodeTimeout { nodeid } {
 proc Reader { pipe } {
 	global Nodes
 	global dyNodes
-	global echo
+	global cfgs
 
 	if [eof $pipe] {
-		close $echo(logFd)
+		close $cfgs(logFd)
 		catch {close $pipe}
 		return
 	}
 	set timeStamp [clock seconds]
 	gets $pipe LIST
 	puts "$timeStamp $LIST"
-	puts $echo(logFd) "$timeStamp $LIST"
-	flush $echo(logFd)
+	puts $cfgs(logFd) "$timeStamp $LIST"
+	flush $cfgs(logFd)
 
 #	set LIST [list $line]
 #	set Time [shift LIST]
@@ -319,11 +338,15 @@ proc Reader { pipe } {
 	set NodeIdValue [shift LIST]
 	dict set Nodes $NodeIdValue State Enb
 
+ 	set Location [dict get $dyNodes $NodeIdValue Location]
+#	puts $Location
+
+
 	set timeoutId [dict get $Nodes $NodeIdValue TimeoutId]
 	if { $timeoutId != "none" } {
 		after cancel $timeoutId
 	}
-	set timeoutId [after [expr {1000*60*10}] NodeTimeout $NodeIdValue]
+	set timeoutId [after [expr {1000*60*$cfgs(TimeoutDlyMin)}] NodeTimeout $NodeIdValue]
 	dict set Nodes $NodeIdValue TimeoutId $timeoutId
 
 #	foreach {Key Value} $LIST 
@@ -342,7 +365,7 @@ proc Reader { pipe } {
 				if {$tval == "no"} {
 					puts "$Value < 2.5"
 # send mail notification
-					set mail "Subject: LowVcc\n\nNode: $NodeIdValue  Vcc: $Value"
+					set mail "Subject: LowVcc Node $NodeIdValue $Location\n\nNode: $NodeIdValue  Vcc: $Value"
 					puts $mail
 					set chan [open "|/usr/bin/msmtp -a default kent.b.larsen@gmail.com" r+]
 					puts $chan $mail
@@ -350,15 +373,37 @@ proc Reader { pipe } {
 					close $chan
 					dict set Nodes $NodeIdValue VccLow yes
 				}
+			} else {
+					dict set Nodes $NodeIdValue VccLow no
 			}
   	}
 		dict set Nodes $NodeIdValue $Key $Value
+#		set b ${Key}Tick
+		dict set Nodes $NodeIdValue ${Key}Tick $timeStamp
 	}
 	dict set Nodes $NodeIdValue timeStamp $timeStamp
+
+if {0} {
+#	foreach NodeIdVal [dict keys $Nodes] 
+  	set value [dict get $Nodes $NodeIdValue]
+		set val1 [dict get $value "SW1"]
+#			puts "value = $value   val1 = $val1"
+#			puts "$NodeIdValue  value = $value  val1 = $val1"
+		if { $val1 != "na" } {
+			set value1 [dict get $dyNodes $NodeIdValue]
+			set val11 [dict get $value1 "SW1${val1}"]
+			puts "$NodeIdValue  val11 = $val11"
+#			puts "$value $val1 $value1 $val11"
+			flush stdout
+		}
+}
+
+
 }
 
 
 set PWD [pwd]
+set cfgs(TimeoutDlyMin) 45
 set Nodes {}
 set dyNodes {}
 set Left_Offset 0
@@ -368,10 +413,10 @@ set winColor green
 set doorColor brown 
 set staticContent {} 
 set dynamicContent {}
-set echo(counter) 0
-set echo(port) [lindex $argv 0]
-set echo(home) [lindex $argv 1]
-set echo(counter) 0
+set cfgs(counter) 0
+set cfgs(port) [lindex $argv 0]
+set cfgs(home) [lindex $argv 1]
+set cfgs(counter) 0
 InitStyleContent staticContent $wallColor $winColor $doorColor
 InitStaticContent ${PWD}/fixed.txt staticContent
 parseDynamic ${PWD}/dynamic.txt
@@ -384,21 +429,111 @@ foreach item [dict keys $dyNodes] {
 }
 }
 
-#BuildFixed $echo(home)/fixed.txt
-#parseDynamic $echo(home)/dynamic.txt
+#BuildFixed $cfgs(home)/fixed.txt
+#parseDynamic $cfgs(home)/dynamic.txt
 #puts $fixedBodyContent
 #puts $scontent
-#puts "Socket Port $echo(port);  Home $echo(home)"
-set echo(main) [socket -server EchoAccept $echo(port)]
+#puts "Socket Port $cfgs(port);  Home $cfgs(home)"
+set cfgs(main) [socket -server EchoAccept $cfgs(port)]
 
-set echo(logFd) [open $echo(home)/lofi_rx.log a]
-fconfigure $echo(logFd) -buffering line
+set cfgs(logFd) [open $cfgs(home)/lofi_rx.log a]
+fconfigure $cfgs(logFd) -buffering line
 
 if {1} {
 set pipe [open "|sudo ./lofi_rpi -lS"]
 fconfigure $pipe -buffering line
 fileevent $pipe readable [list Reader $pipe]
 }
+
+proc Menu {f} {
+	global Nodes
+	global dyNodes
+
+	if {[gets $f line] < 0} {
+		catch {close $f}
+		return
+	}
+
+	set timeStamp [clock seconds]
+
+	if [string match stats* $line] {
+		puts "There are [dict size $Nodes] Nodes"
+		foreach id [dict keys $Nodes] {
+			if {[dict get $Nodes $id State] == "Enb"} {
+			  puts -nonewline [format "Node: %2d " $id]
+			  puts -nonewline "Vcc: [dict get $Nodes $id Vcc] "
+#			  puts -nonewline "Node: $id  Vcc: [dict get $Nodes $id Vcc] "
+			  set VccTick [dict get $Nodes $id VccTick]
+				if {$VccTick == 0} {
+					puts -nonewline "dt: 0 "
+			  } else {
+					set a [expr {$timeStamp - $VccTick} ]
+					puts -nonewline "dt: $a "
+		    }
+			  puts -nonewline "Ctr: [dict get $Nodes $id Ctr] "
+			  set CtrTick [dict get $Nodes $id CtrTick]
+				if {$CtrTick == 0} {
+					puts -nonewline "dt: 0 "
+			  } else {
+					set a [expr {$timeStamp - $CtrTick} ]
+					puts -nonewline "dt: $a "
+		    }
+			  puts -nonewline "SW1: [dict get $Nodes $id SW1] "
+			  set SW1Tick [dict get $Nodes $id SW1Tick]
+				if {$SW1Tick == 0} {
+					puts -nonewline "dt: 0 "
+			  } else {
+					set a [expr {$timeStamp - $SW1Tick} ]
+					puts -nonewline "dt: $a "
+		    }
+			  puts -nonewline "Temp: [dict get $Nodes $id Temp] "
+			  set TempTick [dict get $Nodes $id TempTick]
+				if {$TempTick == 0} {
+					puts "dt: 0"
+			  } else {
+					set a [expr {$timeStamp - $TempTick} ]
+					puts "dt: $a"
+		    }
+			  #set Location [dict get $dyNodes $id Location]
+				#puts $Location
+		  }
+		}
+	}
+
+	if [string match Vcc* $line] {
+		puts "There are [dict size $Nodes] Nodes"
+		foreach id [dict keys $Nodes] {
+			if {[dict get $Nodes $id State] == "Enb"} {
+			  puts "Node: $id  Vcc: [dict get $Nodes $id Vcc] Tick: [dict get $Nodes $id VccTick]"
+		  }
+		}
+	}
+
+	if [string match Ctr* $line] {
+		puts "There are [dict size $Nodes] Nodes"
+		foreach id [dict keys $Nodes] {
+			puts "Node: $id  Ctr: [dict get $Nodes $id Ctr]"
+		}
+	}
+
+	if [string match SW1* $line] {
+		puts "There are [dict size $Nodes] Nodes"
+		foreach id [dict keys $Nodes] {
+			puts "Node: $id  SW1: [dict get $Nodes $id SW1]"
+		}
+	}
+
+	if [string match Temp* $line] {
+		puts "There are [dict size $Nodes] Nodes"
+		foreach id [dict keys $Nodes] {
+			puts "Node: $id  Temp: [dict get $Nodes $id Temp]"
+		}
+	}
+
+	puts $line 
+}
+
+fileevent stdin readable [list Menu stdin]
 
 vwait forever
  
