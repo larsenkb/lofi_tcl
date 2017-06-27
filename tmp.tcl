@@ -307,7 +307,7 @@ proc NodeTimeout { nodeid } {
 	dict set Nodes $nodeid TimeoutId none
 	set location [dict get $dyNodes $nodeid Location]
 
-	set mail "Subject: InactiveNode $nodeid $Location\n\nNode: $nodeid"
+	set mail "Subject: InactiveNode $nodeid $location\n\nNode: $nodeid"
 	puts $mail
 	set chan [open "|/usr/bin/msmtp -a default kent.b.larsen@gmail.com" r+]
 	puts $chan $mail
