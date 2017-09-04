@@ -489,13 +489,13 @@ proc Menu {f} {
 			  puts -nonewline "Temp: [dict get $Nodes $id Temp] "
 			  set TempTick [dict get $Nodes $id TempTick]
 				if {$TempTick == 0} {
-					puts "dt: 0"
+					puts -nonewline "dt: 0"
 			  } else {
 					set a [expr {$timeStamp - $TempTick} ]
-					puts "dt: $a"
+					puts -nonewline "dt: $a"
 		    }
-			  #set Location [dict get $dyNodes $id Location]
-				#puts $Location
+			  set Location [dict get $dyNodes $id Location]
+				puts "  <$Location>"
 		  }
 		}
 	}
