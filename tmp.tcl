@@ -327,7 +327,8 @@ proc Reader { pipe } {
 	}
 	set timeStamp [clock seconds]
 	gets $pipe LIST
-	puts "$timeStamp $LIST"
+#	puts "$timeStamp $LIST"
+	puts "[clock format $timeStamp -format %H:%M:%S] $LIST"
 	puts $cfgs(logFd) "$timeStamp $LIST"
 	flush $cfgs(logFd)
 
@@ -512,21 +513,27 @@ proc Menu {f} {
 	if [string match Ctr* $line] {
 		puts "There are [dict size $Nodes] Nodes"
 		foreach id [dict keys $Nodes] {
-			puts "Node: $id  Ctr: [dict get $Nodes $id Ctr]"
+			if {[dict get $Nodes $id State] == "Enb"} {
+			  puts "Node: $id  Ctr: [dict get $Nodes $id Ctr]"
+			}
 		}
 	}
 
 	if [string match SW1* $line] {
 		puts "There are [dict size $Nodes] Nodes"
 		foreach id [dict keys $Nodes] {
-			puts "Node: $id  SW1: [dict get $Nodes $id SW1]"
+			if {[dict get $Nodes $id State] == "Enb"} {
+			  puts "Node: $id  SW1: [dict get $Nodes $id SW1]"
+			}
 		}
 	}
 
 	if [string match Temp* $line] {
 		puts "There are [dict size $Nodes] Nodes"
 		foreach id [dict keys $Nodes] {
-			puts "Node: $id  Temp: [dict get $Nodes $id Temp]"
+			if {[dict get $Nodes $id State] == "Enb"} {
+			  puts "Node: $id  Temp: [dict get $Nodes $id Temp]"
+			}
 		}
 	}
 
